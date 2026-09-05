@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Time Lapse Clock</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:#111;
+  color:white;
+  font-family:Arial,sans-serif;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.container{
+  width:100%;
+  max-width:700px;
+  text-align:center;
+  padding:25px;
+}
+
+h1{
+  font-size:32px;
+  margin-bottom:30px;
+}
+
+.clock{
+  font-size:clamp(55px,18vw,130px);
+  font-weight:bold;
+  letter-spacing:3px;
+  margin:20px 0;
+}
+
+.real{
+  font-size:22px;
+  color:#aaa;
+  margin-bottom:25px;
+}
+
+button{
+  border:0;
+  border-radius:12px;
+  padding:15px 25px;
+  margin:6px;
+  font-size:18px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+#start{background:#20c55a;color:white}
+#stop{background:#e74c3c;color:white}
+#reset{background:#555;color:white}
+#toggle{background:#2878ff;color:white}
+
+.hidden{
+  display:none;
+}
+
+.speed{
+  margin-top:25px;
+  color:#aaa;
+  font-size:18px;
+}
+
+.speed input{
+  width:100px;
+  padding:10px;
+  margin:0 5px;
+  border-radius:8px;
+  border:1px solid #777;
+  font-size:18px;
+  text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>TIME LAPSE CLOCK</h1>
+
+<div id="displayArea">
+
+  <div id="timeLapse" class="clock">00:00:00</div>
+
+  <div id="realTime" class="real">
+    現実時間：00:00:00
+  </div>
+
+</div>
+
+<button id="start">▶ START</button>
+<button id="stop">■ STOP</button>
+<button id="reset">↻ RESET</button>
+
+<br>
+
+<button id="toggle">タイムラプスだけ表示</button>
+
+<div class="speed">
+  現実1秒 ＝
+  <input id="speedInput" type="number" min="0.1" step="0.1" value="10">
+  秒
+</div>
+
+</div>
+
+<script>
+
+let running=false;
+let startTime=0;
+let elapsedBefore=0;
+let timer=null;
+
+const timeLapse=document.getElementById("timeLapse");
+const realTime=document.getElementById("realTime");
+
+const startBtn=document.getElementById("start");
+const stopBtn=document.getElementById("stop");
+const resetBtn=document.getElementById("reset");
+const toggleBtn=document.getElementById("toggle");
+
+const speedInput=document.getElementById("speedInput");
+
+
+function format(ms){
+
+  let total=Math.floor(ms/1000);
+
+  let h=Math.floor(total/3600);
+  let m=Math.floor((total%3600)/60);
+  let s=total%60;
+
+  return String(h).padStart(2,"0")+":"+
+         String(m).padStart(2,"0")+":"+
+         String(s).padStart(2,"0");
+}
+
+
+function update(){
+
+  const realElapsed=
+    elapsedBefore+(running ? Date.now()-startTime : 0);
+
+  const speed=parseFloat(speedInput.value)||1;
+
+  const lapseElapsed=realElapsed*speed;
+
+  timeLapse.textContent=format(lapseElapsed);
+
+  realTime.textContent=
+    "現実時間："+format(realElapsed);
+}
+
+
+startBtn.onclick=()=>{
+
+  if(running)return;
+
+  running=true;
+
+  startTime=Date.now();
+
+  timer=setInterval(update,50);
+};
+
+
+stopBtn.onclick=()=>{
+
+  if(!running)return;
+
+  elapsedBefore+=Date.now()-startTime;
+
+  running=false;
+
+  clearInterval(timer);
+
+  update();
+};
+
+
+resetBtn.onclick=()=>{
+
+  running=false;
+
+  clearInterval(timer);
+
+  startTime=0;
+
+  elapsedBefore=0;
+
+  timeLapse.textContent="00:00:00";
+
+  realTime.textContent="現実時間：00:00:00";
+};
+
+
+toggleBtn.onclick=()=>{
+
+  if(realTime.classList.contains("hidden")){
+
+    realTime.classList.remove("hidden");
+
+    toggleBtn.textContent="タイムラプスだけ表示";
+
+  }else{
+
+    realTime.classList.add("hidden");
+
+    toggleBtn.textContent="現実時間も表示";
+  }
+};
+
+
+speedInput.oninput=()=>{
+
+  update();
+
+};
+
+</script>
+
+</body>
+</html>
